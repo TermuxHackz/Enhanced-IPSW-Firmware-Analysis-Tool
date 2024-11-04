@@ -29,7 +29,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y fuse appstream
+          sudo apt-get install -y fuse appstream imagemagick  # Include ImageMagick for conversion
 
       - name: Build executable for Windows
         if: matrix.os == 'windows-latest'
@@ -46,7 +46,7 @@ jobs:
           mkdir -p AppDir/usr/bin
           cp dist/ipsw_firmware_tool AppDir/usr/bin/ipsw_firmware_tool
           
-          # Add a desktop entry and icon if necessary
+          # Step 3: Add a desktop entry
           echo "[Desktop Entry]
           Name=IPSW Firmware Tool
           Exec=ipsw_firmware_tool
@@ -54,11 +54,16 @@ jobs:
           Type=Application
           Categories=Utility;" > AppDir/ipsw_firmware_tool.desktop
           
-          # Step 3: Download and prepare appimagetool
+          # Step 4: Convert and copy your icon to AppDir
+          convert app_icon.icns -resize 256x256 AppDir/ipsw_firmware_tool.png  # Convert .icns to .png
+          # If you want to use the .ico, you can also convert that instead:
+          # convert app_icon.ico -resize 256x256 AppDir/ipsw_firmware_tool.png
+
+          # Step 5: Download and prepare appimagetool
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           
-          # Step 4: Build the AppImage
+          # Step 6: Build the AppImage
           ./appimagetool-x86_64.AppImage AppDir output/ipsw_firmware_tool.AppImage || { echo "AppImage creation failed"; exit 1; }
 
       - name: Upload AppImage as artifact
