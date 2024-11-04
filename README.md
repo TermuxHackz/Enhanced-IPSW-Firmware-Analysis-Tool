@@ -40,6 +40,20 @@ A sophisticated tool for analyzing and comparing iOS firmware (IPSW) files, prov
 
 ## 🚀 Installation
 
+### Option 1: Mac App Installation (Recommended)
+1. Download the latest release from the [Releases](https://github.com/TermuxHackz/Enhanced-IPSW-Firmware-Analysis-Tool/releases) page
+2. Download `IPSW Firmware Comparison Tool.dmg`
+3. Double-click the downloaded DMG file
+4. Drag the "IPSW Firmware Comparison Tool" app to your Applications folder
+5. Go to Applications folder and right-click on "IPSW Firmware Comparison Tool.dmg"
+6. Click "Open" and confirm to run the application
+   > Note: On first launch, macOS might show a security prompt since the app is from an unidentified developer. 
+   > To resolve this:
+   > - Go to System Preferences > Security & Privacy
+   > - Click the lock to make changes
+   > - Click "Open Anyway" for IPSW Firmware Analyzer
+
+### Option 2: Run from Source
 1. Clone the repository:
    ```bash
    git clone https://github.com/TermuxHackz/Enhanced-IPSW-Firmware-Analysis-Tool.git
@@ -52,8 +66,19 @@ A sophisticated tool for analyzing and comparing iOS firmware (IPSW) files, prov
 
 3. Run the application:
    ```bash
-   python3 ipsw-diff-gui.py
+   python3 ipsw_firmware_tool.py
    ```
+
+### System Requirements
+- macOS 10.15 (Catalina) or later
+- 4GB RAM minimum (8GB recommended)
+- 500MB free disk space for installation
+- Additional space required for IPSW analysis (varies by firmware size)
+
+
+## Logs
+- Logs from the application are saved in:
+<code>~/Library/Logs/IPSWComparisonTool</code>
 
 
 ### Basic Operation
@@ -107,8 +132,8 @@ Export formats include:
 
 ## 🔄 Update Process
 
-The tool includes an automatic update checker:
-1. Click "Check Updates" in the toolbar
+The tool includes an update checker:
+1. Click "Updates" in the toolbar
 2. If updates are available, review the changelog
 3. Download and install the latest version
 
@@ -157,8 +182,10 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 4. Submit pull request
 
 ## 📝 Version History
+- v1.0.1 (latest)
+    - Fixed GUI not working when building
 
-- v1.0.0 (Latest)
+- v1.0.0 (Older)
   - Initial release
   - Core comparison functionality
   - Advanced analysis features
@@ -177,15 +204,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 💬 Support
 
 - Create an issue for bug reports
-- Join our [Discord community](link_to_discord)
-- Email: your.email@domain.com
+- Email: techcodes@tracetech.me.uk
 
 ## 📸 Screenshots
 
 ![Documentation](Enhanced-IPSW-Firmware-Analysis-Tool-2.png)
 
 *Made with ❤️ by [AnonyminHack5]*
-
-[![Stars](https://img.shields.io/github/stars/TermuxHackz/Enhanced-IPSW-Firmware-Analysis-Tool?style=social)](https://github.com/TermuxHackz/Enhanced-IPSW-Firmware-Analysis-Tool/stargazers)
-[![License](https://img.shields.io/github/license/TermuxHackz/Enhanced-IPSW-Firmware-Analysis-Tool)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/TermuxHackz/Enhanced-IPSW-Firmware-Analysis-Tool)](https://github.com/TermuxHackz/Enhanced-IPSW-Firmware-Analysis-Tool/releases)
