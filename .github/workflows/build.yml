@@ -1,107 +1,73 @@
-name: Build Windows and Linux
+name: Build Executables
 
 on:
-  workflow_dispatch:  # Allows manual trigger
   push:
-    tags:
-      - 'v*'  # Triggers on version tags
+    branches:
+      - master  # Trigger on push to 'master' branch
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  build:
-    name: Build ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-        include:
-          - os: windows-latest
-            output_name: IPSWCompare.exe
-            artifact_name: IPSWCompare-Windows.exe
-          - os: ubuntu-latest
-            output_name: IPSWCompare.AppImage
-            artifact_name: IPSWCompare-Linux.AppImage
-
+  build-windows:
+    runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+      - name: Check out the code
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller pillow requests  # Install required libraries
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pyinstaller pillow requests
+      - name: Build Windows Executable
+        run: |
+          pyinstaller --onefile --add-data "resources;resources" ipsw_firmware_tool.py
+          mv dist/ipsw_firmware_tool.exe ./
 
-    - name: Build Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        pyinstaller --name IPSWCompare `
-          --windowed `
-          --icon app_icon.icns `
-          --add-data "app_icon.icns;." `
-          --add-data "forest-dark.tcl;." `
-          --add-data "forest-dark;forest-dark" `
-          --hidden-import PIL `
-          --hidden-import PIL._tkinter_finder `
-          ipsw_firmware_tool.py
+      - name: Upload Windows Executable
+        uses: actions/upload-artifact@v2
+        with:
+          name: ipsw_firmware_tool_windows.exe
+          path: ipsw_firmware_tool.exe
 
-    - name: Build Linux
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3-tk
-        pyinstaller --name IPSWCompare \
-          --windowed \
-          --icon app_icon.icns \
-          --add-data "app_icon.icns:." \
-          --add-data "forest-dark.tcl:." \
-          --add-data "forest-dark:forest-dark" \
-          --hidden-import PIL \
-          --hidden-import PIL._tkinter_finder \
-          ipsw_firmware_tool.py
-        
-        # Create AppDir structure
-        mkdir -p AppDir/usr/bin
-        mkdir -p AppDir/usr/share/applications
-        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-        
-        # Copy files
-        cp -r dist/IPSWCompare/* AppDir/usr/bin/
-        cp app_icon.icns AppDir/usr/share/icons/hicolor/256x256/apps/ipswcompare.png
-        
-        # Create desktop entry
-        cat > AppDir/usr/share/applications/ipswcompare.desktop << EOF
-        [Desktop Entry]
-        Name=IPSW Firmware Comparison Tool
-        Exec=IPSWCompare
-        Icon=ipswcompare
-        Type=Application
-        Categories=Development;
-        EOF
-        
-        # Get AppImage tool and make executable
-        wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-        chmod +x appimagetool-x86_64.AppImage
-        
-        # Create AppImage
-        ./appimagetool-x86_64.AppImage AppDir IPSWCompare.AppImage
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ matrix.artifact_name }}
-        path: |
-          dist/IPSWCompare/${{ matrix.output_name }}
-          *.AppImage
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          pip install pyinstaller pillow requests  # Install required libraries
 
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          dist/IPSWCompare/${{ matrix.output_name }}
-          *.AppImage
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Linux Executable
+        run: |
+          pyinstaller --onefile --add-data "resources:resources" ipsw_firmware_tool.py
+          mv dist/ipsw_firmware_tool ./
+
+      - name: Create AppImage
+        run: |
+          mkdir -p AppDir/usr/bin
+          mv ipsw_firmware_tool AppDir/usr/bin/
+          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          ./appimagetool AppDir ipsw_firmware_tool.AppImage
+
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v2
+        with:
+          name: ipsw_firmware_tool_linux.AppImage
+          path: ipsw_firmware_tool.AppImage
