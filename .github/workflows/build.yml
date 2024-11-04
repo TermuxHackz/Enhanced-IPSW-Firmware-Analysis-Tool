@@ -29,22 +29,31 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y fuse  # Install FUSE for AppImage support
+          sudo apt-get install -y fuse appstream  # Install FUSE and AppStream CLI for metadata support
 
       - name: Build executable for Windows
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --onefile --add-data "forest-dark;forest-dark" --add-data "compare.png;." --add-data "forest-dark.tcl;." ipsw_firmware_tool.py
+          pyinstaller --onefile --add-data "forest-dark:forest-dark" --add-data "compare.png:." --add-data "forest-dark.tcl:." ipsw_firmware_tool.py
 
       - name: Build AppImage for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
           pyinstaller --onefile --add-data "forest-dark:forest-dark" --add-data "compare.png:." --add-data "forest-dark.tcl:." ipsw_firmware_tool.py
+          
           # Download and prepare appimagetool
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
+          
           mkdir -p ./output  # Create output directory if it doesn't exist
-          ./appimagetool-x86_64.AppImage dist/ipsw_firmware_tool ./output/ipsw_firmware_tool.AppImage
+          
+          # Check if the expected AppImage was created in dist/
+          if [ -f dist/ipsw_firmware_tool ]; then
+              ./appimagetool-x86_64.AppImage dist/ipsw_firmware_tool ./output/ipsw_firmware_tool.AppImage
+          else
+              echo "Error: Expected AppImage not found in dist/"
+              exit 1
+          fi
 
       - name: Upload AppImage as artifact
         if: matrix.os == 'ubuntu-latest'
