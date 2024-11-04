@@ -31,7 +31,7 @@ jobs:
           mv dist/ipsw_firmware_tool.exe ./
 
       - name: Upload Windows Executable
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4  # Updated to v4
         with:
           name: ipsw_firmware_tool_windows.exe
           path: ipsw_firmware_tool.exe
@@ -67,7 +67,7 @@ jobs:
           ./appimagetool AppDir ipsw_firmware_tool.AppImage
 
       - name: Upload Linux AppImage
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4  # Updated to v4
         with:
           name: ipsw_firmware_tool_linux.AppImage
           path: ipsw_firmware_tool.AppImage
