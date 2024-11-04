@@ -3,71 +3,46 @@ name: Build Executables
 on:
   push:
     branches:
-      - master  # Trigger on push to 'master' branch
-  pull_request:
-    branches:
-      - master
+      - master  # Updated branch name
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v3  # Updated to v3
-      
+      - name: Checkout code
+        uses: actions/checkout@v3  # Updated to use v3
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v4  # Updated to use v4
         with:
-          python-version: '3.x'
+          python-version: '3.8'  # Specify your Python version
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller pillow requests  # Install required libraries
+          pip install pyinstaller Pillow  # Add other dependencies as needed
 
-      - name: Build Windows Executable
+      - name: Build executable for Windows
+        if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --onefile --add-data "resources;resources" ipsw_firmware_tool.py
-          mv dist/ipsw_firmware_tool.exe ./
+          pyinstaller --onefile --add-data "forest-dark;forest-dark" --add-data "compare.png;." --add-data "forest-dark.tcl;." ipsw_firmware_tool.py
 
-      - name: Upload Windows Executable
-        uses: actions/upload-artifact@v4  # Using v4 for upload
+      - name: Build AppImage for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pyinstaller --onefile --add-data "forest-dark;forest-dark" --add-data "compare.png;." --add-data "forest-dark.tcl;." ipsw_firmware_tool.py
+          # Convert to AppImage using appimagetool
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          mkdir -p ./output  # Create output directory if it doesn't exist
+          ./appimagetool-x86_64.AppImage dist/ipsw_firmware_tool ./output/ipsw_firmware_tool.AppImage
+
+      - name: Upload AppImage as artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v3
         with:
-          name: ipsw_firmware_tool_windows.exe
-          path: ipsw_firmware_tool.exe
-
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the code
-        uses: actions/checkout@v3  # Updated to v3
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3 python3-pip
-          pip install pyinstaller pillow requests  # Install required libraries
-
-      - name: Build Linux Executable
-        run: |
-          pyinstaller --onefile --add-data "resources:resources" ipsw_firmware_tool.py
-          mv dist/ipsw_firmware_tool ./
-
-      - name: Create AppImage
-        run: |
-          mkdir -p AppDir/usr/bin
-          mv ipsw_firmware_tool AppDir/usr/bin/
-          wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ./appimagetool AppDir ipsw_firmware_tool.AppImage
-
-      - name: Upload Linux AppImage
-        uses: actions/upload-artifact@v4  # Using v4 for upload
-        with:
-          name: ipsw_firmware_tool_linux.AppImage
-          path: ipsw_firmware_tool.AppImage
+          name: ipsw_firmware_tool_appimage
+          path: ./output/ipsw_firmware_tool.AppImage
