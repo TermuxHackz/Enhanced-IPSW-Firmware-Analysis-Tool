@@ -39,7 +39,7 @@ jobs:
       - name: Build AppImage for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pyinstaller --onefile --add-data "forest-dark;forest-dark" --add-data "compare.png;." --add-data "forest-dark.tcl;." ipsw_firmware_tool.py
+          pyinstaller --onefile --add-data "forest-dark:forest-dark" --add-data "compare.png:." --add-data "forest-dark.tcl:." ipsw_firmware_tool.py
           # Download and prepare appimagetool
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
