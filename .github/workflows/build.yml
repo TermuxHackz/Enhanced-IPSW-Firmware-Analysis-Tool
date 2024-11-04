@@ -3,7 +3,7 @@ name: Build Executables
 on:
   push:
     branches:
-      - master  # Updated branch name
+      - master
 
 jobs:
   build:
@@ -19,17 +19,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'  # Specify your Python version
+          python-version: '3.8'
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller Pillow  # Add other dependencies as needed
+          pip install pyinstaller Pillow requests
 
       - name: Install system dependencies for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y fuse appstream  # Install FUSE and AppStream CLI for metadata support
+          sudo apt-get install -y fuse appstream
 
       - name: Build executable for Windows
         if: matrix.os == 'windows-latest'
@@ -39,25 +39,31 @@ jobs:
       - name: Build AppImage for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
+          # Step 1: Package with PyInstaller
           pyinstaller --onefile --add-data "forest-dark:forest-dark" --add-data "compare.png:." --add-data "forest-dark.tcl:." ipsw_firmware_tool.py
+
+          # Step 2: Create AppDir structure
+          mkdir -p AppDir/usr/bin
+          cp dist/ipsw_firmware_tool AppDir/usr/bin/ipsw_firmware_tool
           
-          # Download and prepare appimagetool
+          # Add a desktop entry and icon if necessary
+          echo "[Desktop Entry]
+          Name=IPSW Firmware Tool
+          Exec=ipsw_firmware_tool
+          Icon=ipsw_firmware_tool
+          Type=Application
+          Categories=Utility;" > AppDir/ipsw_firmware_tool.desktop
+          
+          # Step 3: Download and prepare appimagetool
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           
-          mkdir -p ./output  # Create output directory if it doesn't exist
-          
-          # Check if the expected AppImage was created in dist/
-          if [ -f dist/ipsw_firmware_tool ]; then
-              ./appimagetool-x86_64.AppImage dist/ipsw_firmware_tool ./output/ipsw_firmware_tool.AppImage || { echo "AppImage creation failed"; exit 1; }
-          else
-              echo "Error: Expected AppImage not found in dist/"
-              exit 1
-          fi
+          # Step 4: Build the AppImage
+          ./appimagetool-x86_64.AppImage AppDir output/ipsw_firmware_tool.AppImage || { echo "AppImage creation failed"; exit 1; }
 
       - name: Upload AppImage as artifact
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ipsw_firmware_tool_appimage
-          path: ./output/ipsw_firmware_tool.AppImage
+          path: output/ipsw_firmware_tool.AppImage
