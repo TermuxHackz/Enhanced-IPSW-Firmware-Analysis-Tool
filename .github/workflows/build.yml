@@ -55,13 +55,16 @@ jobs:
           Categories=Utility;" > AppDir/ipsw_firmware_tool.desktop
           
           # Step 4: Copy your new icon
-          cp app_icon_512x512x32.png AppDir/ipsw_firmware_tool.png  # Use the newly converted PNG
+          cp app_icon_512x512x32.png AppDir/ipsw_firmware_tool.png
 
-          # Step 5: Download and prepare appimagetool
+          # Step 5: Create the output directory if it doesn't exist
+          mkdir -p output
+
+          # Step 6: Download and prepare appimagetool
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           
-          # Step 6: Build the AppImage
+          # Step 7: Build the AppImage
           ./appimagetool-x86_64.AppImage AppDir output/ipsw_firmware_tool.AppImage || { echo "AppImage creation failed"; exit 1; }
 
       - name: Upload AppImage as artifact
