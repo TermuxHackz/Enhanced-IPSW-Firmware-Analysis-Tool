@@ -49,7 +49,7 @@ jobs:
           
           # Check if the expected AppImage was created in dist/
           if [ -f dist/ipsw_firmware_tool ]; then
-              ./appimagetool-x86_64.AppImage dist/ipsw_firmware_tool ./output/ipsw_firmware_tool.AppImage
+              ./appimagetool-x86_64.AppImage dist/ipsw_firmware_tool ./output/ipsw_firmware_tool.AppImage || { echo "AppImage creation failed"; exit 1; }
           else
               echo "Error: Expected AppImage not found in dist/"
               exit 1
