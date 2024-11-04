@@ -14,16 +14,22 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3  # Updated to use v3
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v4  # Updated to use v4
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'  # Specify your Python version
 
       - name: Install dependencies
         run: |
           pip install pyinstaller Pillow  # Add other dependencies as needed
+
+      - name: Install system dependencies for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fuse  # Install FUSE for AppImage support
 
       - name: Build executable for Windows
         if: matrix.os == 'windows-latest'
@@ -34,7 +40,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           pyinstaller --onefile --add-data "forest-dark;forest-dark" --add-data "compare.png;." --add-data "forest-dark.tcl;." ipsw_firmware_tool.py
-          # Convert to AppImage using appimagetool
+          # Download and prepare appimagetool
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           mkdir -p ./output  # Create output directory if it doesn't exist
